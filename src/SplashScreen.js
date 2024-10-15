@@ -40,41 +40,29 @@ function drawQuarticBezier(ctx, steps, p0, p1, p2, p3, p4){
 	ctx.stroke();
 }
 
+// The instance of quartic Beziers that we wil use for our animation
+function drawSplashBezier(ctx, start, end){
+	// Traverse the line above perpendicularly and normal_percent point and go percent amount
+	function traverse_perpendicular(normal_percent, percent){
+		let x_distance_traversed = (end.x - start.x);
+		let y_distance_traversed = (end.y - start.y);
+		// Point on normal line normal_percent away from start
+		let perp_start = newPoint(start.x + x_distance_traversed*percent, start.y + y_distance_traversed*percent); 
+		//The point that is perpendicular to the line and is percent of start to end away from it
+		return newPoint(perp_start.x + y_distance_traversed*new_percent, perp_start.y - x_distance_traversed*new_percent);
+	}
 
-
+	let p0 = start;
+	let p1 = traverse_perpendicular(0.75, -0.15);
+	let p2 = traverse_perpendicular(0.75, 0.45);
+	let p3 = traverse_perpendicular(1, 0.05);
+	let p4 = end;
+	let steps = 1000; //Our Hyperparameter wiggle this until curve looks nice
+	drawQuarticBezier(ctx, steps, p0, p1,  p2, p3, p4);
+}
 
 function SplashScreen(){
 	let splashCanvas = useRef(null);
-        const introCurves = [
-                {
-                        startX: 50, startY: 100,
-                        controlX1: 150, controlY1: 50,
-                        controlX2: 350, controlY2: 50,
-                        endX: 400, endY: 300
-                },
-
-                {
-                        startX: 50, startY: 100,
-                        controlX1: 150, controlY1: 50,
-                        controlX2: 350, controlY2: 50,
-                        endX: 400, endY: 300
-                },
-
-                {
-                        startX: 50, startY: 100,
-                        controlX1: 150, controlY1: 50,
-                        controlX2: 350, controlY2: 50,
-                        endX: 400, endY: 300
-                },
-
-                {
-                        startX: 50, startY: 100,
-                        controlX1: 150, controlY1: 50,
-                        controlX2: 350, controlY2: 50,
-                        endX: 400, endY: 300
-                }
-        ];
-
 	useEffect(() => {
                 const canvas = splashCanvas.current;
                 const ctx = canvas.getContext('2d');
@@ -94,7 +82,46 @@ function SplashScreen(){
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-		drawQuarticBezier(ctx, newPoint(0, 0), newPoint(
+		// Quartic Curves used in the SplashScreen
+		/*
+		const splashCurves = [
+			{
+				p0: newPoint(canvas.width, 0),
+				p1: newPoint(),
+				controlX1: 150, controlY1: 50,
+				controlX2: 350, controlY2: 50,
+				endX: 400, endY: 300
+			},
+
+			{
+				startX: 50, startY: 100,
+				controlX1: 150, controlY1: 50,
+				controlX2: 350, controlY2: 50,
+				endX: 400, endY: 300
+			},
+
+			{
+				startX: 50, startY: 100,
+				controlX1: 150, controlY1: 50,
+				controlX2: 350, controlY2: 50,
+				endX: 400, endY: 300
+			},
+
+			{
+				startX: 50, startY: 100,
+				controlX1: 150, controlY1: 50,
+				controlX2: 350, controlY2: 50,
+				endX: 400, endY: 300
+			}
+		];
+		*/
+		let slope = center.y / center.x;
+		let inv_slope = -(center.x / center.y);
+		let slope_ratio_x = Math.sqrt(1 slope**2);
+		drawSplashBezier(ctx, newPoint(0, 0), newPoint(center.x - (loader_radius * slope_ratio_x), y - (loader_radius * slope_ratio_x * slope));
+		drawSplashBezier(ctx, newPoint(0, 0), newPoint(center.x - (loader_radius * slope_ratio_x), y - (loader_radius * slope_ratio_x * slope));
+		drawSplashBezier(ctx, newPoint(0, 0), newPoint(center.x - (loader_radius * slope_ratio_x), y - (loader_radius * slope_ratio_x * slope));
+		drawSplashBezier(ctx, newPoint(0, 0), newPoint(center.x - (loader_radius * slope_ratio_x), y - (loader_radius * slope_ratio_x * slope));
 		//Center Circle
 		ctx.beginPath();
 		ctx.arc(center.x, center.y, loader_radius, 0, Math.PI * 2);
