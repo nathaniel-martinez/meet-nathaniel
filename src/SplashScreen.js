@@ -13,6 +13,15 @@ function interpolate(p0, p1, t) {
     return newPoint((1 - t) * p0.x + t * p1.x, (1 - t) * p0.y + t * p1.y);
 }
 
+// Traverse a line perpendicularly and get the point. Start at linePercent of the line distance and then traverse tangPercent the tangent line which is also
+// a percentage of the original lines distance
+function traversePerpendicular(lineStart, lineEnd, linePercent, tangPercent){
+	let x_distance_traversed = (lineEnd.x - lineStart.x);
+	let y_distance_traversed = (lineEnd.y - lineStart.y);
+	let perp_start = newPoint(lineStart.x + x_distance_traversed*linePercent, lineStart.y + y_distance_traversed*linePercent); 
+	return newPoint(perp_start.x + y_distance_traversed*tangPercent, perp_start.y - x_distance_traversed*tangPercent);
+}
+
 // Simple function that gets the Bezier "Average" of all points inputed in the array at a specific point of t
 function deCastlejauInstance(t, point_arr){
 	let safe_point_arr = [...point_arr];
@@ -30,38 +39,34 @@ function drawQuarticBezier(ctx, steps, p0, p1, p2, p3, p4){
 	ctx.beginPath();
 	ctx.moveTo(p0.x, p0.y);
 	const point_arr = [p0, p1, p2, p3, p4];
+	const wrapperPoints = [];
+	const wrapWidth = 0.1;
+	// Create 2 new bezier curves that wrap the original bezier curve
+	for(let i = -1; i <= 1; i+=2){
+		let newP1 = traversePerpendicular(p0, p4, 0, wrapWidth * i);
+		let transformPoints = new Array(5);
+		for(let j = 0; j < 5; j++){
+			// transfrom is decremented as we approach the end. This allows our wrapper bezier curves to converge
+			let transform = {"x_part": (newP1.x - p1.x) * (4-j / 4), "y_part": (newP1.y - p1.y) * (4-j / 4)};
+			transformPoints[j] = newPoint(point_arr[j].x+transform.x_part, point_arr[j].y+transform.y_part);
+		}
+		wrapperPoints.push(transformPoints);
+	}
 	let t, quart_point;
 	for(let i = 0; i < steps; i++){
 		t = i/(steps-1);
 		quart_point = deCastlejauInstance(t, point_arr);
 		ctx.lineTo(quart_point.x, quart_point.y);
 	}
-
 	ctx.stroke();
 }
 
 // The instance of quartic Beziers that we wil use for our animation
-function drawSplashBezier(ctx, start, end, tangXRatio, tangYRatio){
-	let x_distance_traversed = (end.x - start.x);
-	let y_distance_traversed = (end.y - start.y);
-	// Traverse the line above perpendicularly and normal_percent point and go percent amount
-	function traverse_perpendicular(normal_percent, inv_percent){
-		// Point on normal line normal_percent away from start
-		let perp_start = newPoint(start.x + x_distance_traversed*normal_percent, start.y + y_distance_traversed*normal_percent); 
-		//The point that is perpendicular to the line and is percent of start to end away from it
-		return newPoint(perp_start.x - y_distance_traversed*inv_percent, perp_start.y + x_distance_traversed*inv_percent);
-	}	
-
-	// Traverse the tangent of the circle wich the point end touches
-	function traverse_tangent(percent){
-		let distance = Math.sqrt(x_distance_traversed ** 2 + y_distance_traversed**2);
-		let tangDistance = distance * percent;
-		return newPoint(end.x - tangDistance * tangYRatio * Math.sign(y_distance_traversed), end.y + tangDistance * tangXRatio * Math.sign(x_distance_traversed));
-	}
+function drawSplashBezier(ctx, start, end, center){
 	let p0 = start;
-	let p1 = traverse_perpendicular(0.75, -0.15);
-	let p2 = traverse_perpendicular(0.75, 0.45);
-	let p3 = traverse_tangent(0.05);
+	let p1 = traversePerpendicular(start, end, 0.75, 0.15);
+	let p2 = traversePerpendicular(start, end, 0.75, -0.45);
+	let p3 = traversePerpendicular(end, center, 0, -1);
 	let p4 = end;
 	let steps = 1000; //Our Hyperparameter wiggle this until curve looks nice
 	drawQuarticBezier(ctx, steps, p0, p1,  p2, p3, p4);
@@ -128,12 +133,11 @@ function SplashScreen(){
 		let radius_x_component = (loader_radius / slope_ratio_x);
 		let radius_y_component = radius_x_component * slope;
 
-		drawSplashBezier(ctx, newPoint(0, 0), newPoint(center.x - radius_x_component, center.y - radius_y_component), slope_ratio_x, slope_ratio_x * slope);
-		drawSplashBezier(ctx, newPoint(0, canvas.height), newPoint(center.x - radius_x_component, center.y + radius_y_component), slope_ratio_x, slope_ratio_x * slope);
-		drawSplashBezier(ctx, newPoint(canvas.width, canvas.height), newPoint(center.x + radius_x_component, center.y + radius_y_component), slope_ratio_x, slope_ratio_x * slope);
-		drawSplashBezier(ctx, newPoint(canvas.width, 0), newPoint(center.x + radius_x_component, center.y - radius_y_component), slope_ratio_x, slope_ratio_x * slope);
+		drawSplashBezier(ctx, newPoint(0, 0), newPoint(center.x - radius_x_component, center.y - radius_y_component), center);
+		drawSplashBezier(ctx, newPoint(0, canvas.height), newPoint(center.x - radius_x_component, center.y + radius_y_component), center);
+		drawSplashBezier(ctx, newPoint(canvas.width, canvas.height), newPoint(center.x + radius_x_component, center.y + radius_y_component), center);
+		drawSplashBezier(ctx, newPoint(canvas.width, 0), newPoint(center.x + radius_x_component, center.y - radius_y_component), center);
 
-		console.log("howdy!");
 		//Center Circle
 		ctx.beginPath();
 		ctx.arc(center.x, center.y, loader_radius, 0, Math.PI * 2);
