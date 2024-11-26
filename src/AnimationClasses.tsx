@@ -11,6 +11,7 @@ export class BezierWrapers implements AnimatableShape{
 	color: string;
 	beziers: [Bezier, Bezier] = [new Bezier(), new Bezier()];
 	currentState: [Point, Point] = [new Point(), new Point()];
+	static count: number = 1;
 
 	constructor(ctx: any, color: string, wrapWidth: number, centerBezier: Bezier){
 		this.color = color;
@@ -36,24 +37,25 @@ export class BezierWrapers implements AnimatableShape{
 	}
 
 	step(t: number): void{
-		console.log(`State is ${this.currentState.join(', ')}\n`);
+		console.log(`${BezierWrapers.count}. State is ${this.currentState.join(', ')}\n`);
 		let start: Point = this.currentState[0];
 		let end: Point = this.currentState[1];
 		this.currentState[0] = this.beziers[0].getPoint(t);
 		this.currentState[1] = this.beziers[1].getPoint(t);
 
-		console.log(`changed state is ${this.currentState.join(', ')}\n\n`);
+		console.log(`${BezierWrapers.count}. changed state is ${this.currentState.join(', ')}\n\n`);
 		let prevFillStyle = this.ctx.fillStyle;
 		this.ctx.fillStyle = this.color;
 
-		//this.ctx.beginPath();
+		this.ctx.beginPath();
 		this.ctx.moveTo(start.x, start.y);
 		this.ctx.lineTo(this.currentState[0].x, this.currentState[0].y);
 		this.ctx.lineTo(this.currentState[1].x, this.currentState[1].y);
 		this.ctx.lineTo(end.x, end.y);
-		//this.ctx.closePath();
+		this.ctx.closePath();
 		this.ctx.fill();
 		this.ctx.fillStyle = prevFillStyle;
+		BezierWrapers.count = BezierWrapers.count + 1;
 	}
 
 	reset(): void{
@@ -67,7 +69,6 @@ export class AnimatableGroup{
 	shapes: AnimatableShape[];
 	easingFunc: (x: number)=>number;
 	animationStart!: number;
-
 	constructor(timeSpan: number, easingFunc: (x: number)=>number, shapeArray: AnimatableShape[]){
 		this.timeSpan = timeSpan;
 		this.shapes = shapeArray;

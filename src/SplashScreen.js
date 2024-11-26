@@ -37,7 +37,6 @@ function SplashScreen(){
 
 		// Adjust the canvas to be able to use the amount of pixel available in the inner window
 		const scale = window.devicePixelRatio;
-		console.log(scale);
 		canvas.width = canvas.clientWidth * scale;
 		canvas.height = canvas.clientHeight * scale;
 
@@ -93,15 +92,14 @@ function SplashScreen(){
 				)
 			);
 		}
-
 		const animationBeziers = new AnimatableGroup(BEZIER_TIMESPAN, BEZIER_EASINGFUNC, bezierArr);
 		animationBeziers.startAnimation();
 
 		//Center Circle
-		ctx.beginPath();
-		ctx.arc(center.x, center.y, loader_radius, 0, Math.PI * 2);
-		ctx.fillStyle = 'blue';
-		ctx.fill();
+		//ctx.beginPath();
+		//ctx.fillStyle = 'blue';
+		//ctx.arc(center.x, center.y, loader_radius, 0, Math.PI * 2);
+		//ctx.fill();
         }, []);
 
 	return (
