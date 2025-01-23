@@ -46,17 +46,20 @@ export class Bezier{
 
 	getPoint(t: number): Point{
 		let tmp_point_arr = [...this.pointArr];
-		let end = tmp_point_arr.length - 1;
-		while(end !== 0){
-			for(let i = 0; i < end; i++){
+		let count = tmp_point_arr.length - 1;
+		while(count !== 0){
+			for(let i = 0; i < count; i++){
 				tmp_point_arr[i] = this.interpolate(tmp_point_arr[i], tmp_point_arr[i+1], t);
 			}
-			end--;
+			count--;
 		}
 		return tmp_point_arr[0];
 	}
 }
 
+export function radiusComponents(center: Point, radius: number, angle: number): [number, number]{
+	return [radius * Math.cos(angle), radius * Math.sin(angle)];
+}
 
 // Traverse a line perpendicularly and get the point. Start at linePercent of the line distance and then traverse tangPercent the tangent line which is also
 // a percentage of the original lines distance
@@ -65,4 +68,25 @@ export function traversePerpendicular(lineStart: Point, lineEnd: Point, linePerc
 	let y_distance_traversed: number = (lineEnd.y - lineStart.y);
 	let perp_start: Point = new Point(lineStart.x + x_distance_traversed*linePercent, lineStart.y + y_distance_traversed*linePercent); 
 	return new Point(perp_start.x + y_distance_traversed*tangPercent, perp_start.y - x_distance_traversed*tangPercent);
+}
+
+// Rotates a point along a circle as if it were on the circumference
+// All angles are radians
+export function rotatePoint(center: Point, point: Point,  angle: number): Point{
+	let currentAngle = Math.atan2(point.y - center.y, point.x - center.x);
+	let newAngle = currentAngle - angle;
+	let radius = Math.sqrt((point.x - center.x)**2 + (point.y - center.y)**2);
+	let x = center.x + radius * Math.cos(newAngle);
+	let y = center.y + radius * Math.sin(newAngle);
+	return new Point(x, y);
+}
+
+// Pretending that the radius of a circle is infinite, move along this line
+export function traverseRadius(center: Point, point: Point, amount: number): Point{
+	let angle = Math.atan2(point.y - center.y, point.x - center.x);
+	let radius = Math.sqrt((point.x - center.x)**2 + (point.y - center.y)**2);
+	let newRadius = radius + amount;
+	let x = center.x + newRadius * Math.cos(angle);
+	let y = center.y + newRadius * Math.sin(angle);
+	return new Point(x, y);
 }
