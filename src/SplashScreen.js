@@ -3,6 +3,10 @@ import {Point, Bezier, radiusComponents, traversePerpendicular, rotatePoint, tra
 import {AnimatableGroup, BezierWrapers, Arc, CircleLink, CircleFill} from "./AnimationClasses";
 import * as PIXI form 'pixi.js';
 
+
+const ASPECT_RATIO = window.innerWidth / window.innerHeight;
+const BACKGROUND_COLOR = 0xFFFFFF;
+
 // Some static definitions that are useful for drawing the intro
 const MIN_RADIUS = 80;
 const RADIUS_GROWTH = 0.06;
@@ -10,8 +14,9 @@ const RADIUS_GROWTH = 0.06;
 // Bezier CONSTS
 const BEZIER_TIMESPAN = 1000;
 const BEZIER_EASINGFUNC = x=>x**2;
-const BEZIER_COLOR = "black";
-const BEZIER_WIDTH = 0.2;
+//const BEZIER_COLOR = "black";
+const BEZIER_COLOR = 0x000000;
+const BEZIER_WIDTH = 2;
 
 // Arc CONSTS
 const ARC_TIMESPAN = 500;
@@ -48,53 +53,46 @@ const FILL_COLOR = "black";
 //}
 
 function SplashScreen(){
-	let splashCanvas = useRef(null);
+
+	const splashCanvas = useRef(null);
 	useEffect(() => {
-                const canvas = splashCanvas.current;
-                const ctx = canvas.getContext('2d');
-		
-		//if(!gl){
-			//console.log("WebGL not supported, skipping splash screen");
-			//return;
-		//}
+		if (! PIXI.utils.isWebGLSupported()) {
+			console.log("WebGL not supported, skipping splash screen");
+			return;
+		}
 
-		ctx.imageSmoothingEnabled = true;
+		const app = new PIXI.Application({ resizeTo: window, transparent: true });
+		splashCanvas.current.appendChild(app.view);
 
-		// Adjust the canvas to be able to use the amount of pixel available in the inner window
-		const scale = window.devicePixelRatio;
-		canvas.width = canvas.clientWidth * scale;
-		canvas.height = canvas.clientHeight * scale;
+		// len of radius pretending aspect ratio is 1
+		let loader_radius = 0.2; 
 
-		// Simple function to make actual radius size responsive
-		let loader_radius = (MIN_RADIUS) + (canvas.width - MIN_RADIUS) * RADIUS_GROWTH
+		let center = new Point(0, 0);
+		let topLeft = new Point(-1, 1);
+		let topRight = new Point(1, 1);
+		let bottomLeft = new Point(-1, -1);
+		let bottomRight = new Point(1, -1);
 
-		let center = new Point(canvas.width / 2, canvas.height / 2);
-
-		//Non transparent background
-                //gl.clearColor(1, 1, 1, 1);
-		//gl.clear(gl.COLOR_BUFFER_BIT);
-
-		//convert radtiens to degrees
 		let [radius_x, radius_y] = radiusComponents(center, loader_radius, Math.PI / 4);
 
 		const splashBezierStartAndEnds = [
 			{
-				"start": new Point(0, 0), 
+				"start": bottomLeft,
 				"end": new Point(center.x - radius_x, center.y - radius_y)
 			},
 
 			{
-				"start": new Point(0, canvas.height),
+				"start": topLeft,
 				"end": new Point(center.x - radius_x, center.y + radius_y)
 			},
 			
 			{
-				"start": new Point(canvas.width, canvas.height),
+				"start": topRight,
 				"end": new Point(center.x + radius_x, center.y + radius_y)
 			},
 
 			{
-				"start": new Point(canvas.width, 0),
+				"start": bottomRight,
 				"end": new Point(center.x + radius_x, center.y - radius_y)
 			}
 		];
@@ -170,8 +168,8 @@ function SplashScreen(){
         }, []);
 
 	return (
-		<canvas ref={splashCanvas} className="h-screen w-screen bg-red">
-		</canvas>
+		<div ref={splashCanvas} className="h-screen w-screen">
+		</div>
 	);
 }
 

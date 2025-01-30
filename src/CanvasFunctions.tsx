@@ -4,8 +4,8 @@ export class Point{
 
 
 	constructor(x_val?: number, y_val?: number){
-		this.x = x_val ?? -1;
-		this.y = y_val ?? -1;
+		this.x = x_val ?? -2;
+		this.y = y_val ?? -2;
 	}
 
 	toString(): string{
@@ -40,6 +40,9 @@ export class Bezier{
 		return this.pointArr[i];
 	}
 	
+	/*
+	 * Outdated as we now this these calculations directly in the gpu
+	 */
 	interpolate(p0: Point, p1: Point, t: number): Point{
 	    return new Point((1 - t) * p0.x + t * p1.x, (1 - t) * p0.y + t * p1.y);
 	}
@@ -57,12 +60,29 @@ export class Bezier{
 	}
 }
 
+/*
+ * ASPECT RATIO GNOSTIC
+ *
+ * This function returns the x and y components of a point on a circle given 
+ * the center, radius, and angle. We must account for the aspect ratio in this function
+ * by transforming our result so that the circle is not stretched since the units of x and y
+ * are different, due to gpu rendering.
+ */
 export function radiusComponents(center: Point, radius: number, angle: number): [number, number]{
-	return [radius * Math.cos(angle), radius * Math.sin(angle)];
+	let unadjusted_radius =  [radius * Math.cos(angle), radius * Math.sin(angle)];
+	if(ASPECT_RATIO > 1){
+		unadjusted_radius[0] /= ASPECT_RATIO;
+	}
+	else if(ASPECT_RATIO < 1){
+		unadjusted_radius[1] /= ASPECT_RATIO;
+	}
+	return unadjusted_radius;
 }
+
 
 // Traverse a line perpendicularly and get the point. Start at linePercent of the line distance and then traverse tangPercent the tangent line which is also
 // a percentage of the original lines distance
+
 export function traversePerpendicular(lineStart: Point, lineEnd: Point, linePercent: number, tangPercent: number): Point{
 	let x_distance_traversed: number = (lineEnd.x - lineStart.x);
 	let y_distance_traversed: number = (lineEnd.y - lineStart.y);

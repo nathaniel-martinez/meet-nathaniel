@@ -3,7 +3,7 @@ import {Point, Bezier, traversePerpendicular, rotatePoint} from "./CanvasFunctio
 interface AnimatableShape{
 	color: string;
 	ctx: any;
-	step(t: number): void;
+	fragmentCondition: (tVarName: string, flagVarName: string)=>string;
 }
 
 
@@ -112,12 +112,10 @@ export class BezierWrapers implements AnimatableShape{
 	ctx: any;
 	color: string;
 	beziers: [Bezier, Bezier] = [new Bezier(), new Bezier()];
-	currentState: [Point, Point] = [new Point(), new Point()];
-	static count: number = 1;
+	fragmentEDF: string = '';
 
-	constructor(ctx: any, color: string, wrapWidth: number, centerBezier: Bezier){
+	constructor(color: string, wrapWidth: number, centerBezier: Bezier){
 		this.color = color;
-		this.ctx = ctx;
 		const wrapDecr = wrapWidth / (centerBezier.getNumOfControlPoints() - 1);
 		let i = 0;
 		for(let sign = -1; sign <= 1; sign = sign + 2){
@@ -136,32 +134,23 @@ export class BezierWrapers implements AnimatableShape{
 			this.beziers[i] = new Bezier(transformPoints);
 			i++;
 		}
-		this.reset();
+
+		this.fragmentEDF = `
+				{ 	
+					vec2 topBezier(t){
+						return 
+			`;
+		for(let i = 0; i < this.beziers[0].getNumOfControlPoints(); i++){
+			this.fragmetnEDF += 
+
 	}
 
-	step(t: number): void{
-		let start: Point = this.currentState[0];
-		let end: Point = this.currentState[1];
-		this.currentState[0] = this.beziers[0].getPoint(t);
-		this.currentState[1] = this.beziers[1].getPoint(t);
-
-		let prevFillStyle = this.ctx.fillStyle;
-		this.ctx.fillStyle = this.color;
-
-		this.ctx.beginPath();
-		this.ctx.moveTo(start.x, start.y);
-		this.ctx.lineTo(this.currentState[0].x, this.currentState[0].y);
-		this.ctx.lineTo(this.currentState[1].x, this.currentState[1].y);
-		this.ctx.lineTo(end.x, end.y);
-		this.ctx.closePath();
-		this.ctx.fill();
-		this.ctx.fillStyle = prevFillStyle;
-		BezierWrapers.count = BezierWrapers.count + 1;
-	}
-
-	reset(): void{
-		this.currentState[0] = this.beziers[0].getFirstPoint();
-		this.currentState[1] = this.beziers[1].getFirstPoint();
+	function binomialCoefficient(n, k) {
+		let result = 1;
+		for (let i = 0; i < k; i++) {
+		    result *= (n - i) / (i + 1);
+		}
+		return result;
 	}
 }
 
@@ -170,6 +159,10 @@ export class AnimatableGroup{
 	shapes: AnimatableShape[];
 	easingFunc: (x: number)=>number;
 	animationStart!: number;
+	vertexShader: string = '';
+	fragmentShader: string = '';
+
+
 	constructor(timeSpan: number, easingFunc: (x: number)=>number, shapeArray: AnimatableShape[]){
 		this.timeSpan = timeSpan;
 		this.shapes = shapeArray;
