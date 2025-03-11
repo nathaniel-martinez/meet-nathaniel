@@ -1,6 +1,4 @@
 import { useRef, useEffect } from 'react'
-import {Point, Bezier, radiusComponents, traversePerpendicular, rotatePoint, traverseRadius} from "./CanvasFunctions";
-import {AnimatableGroup, BezierWrapers, Arc, CircleLink, CircleFill} from "./AnimationClasses";
 import * as PIXI form 'pixi.js';
 
 
@@ -36,22 +34,6 @@ const FILL_EASINGFUNC = x=>x;
 const FILL_COLOR = "black";
 
 
-// Simply to Test the drawing of points so that we can see the points
-//function drawPoints(ctx, pointArr, color="green"){
-	//ctx.strokeStyle = color;
-	//ctx.beginPath();
-	//ctx.moveTo(pointArr[0].x, pointArr[0].y)
-	//for(let i = 1; i < pointArr.length; i++){
-		//ctx.lineTo(pointArr[i].x, pointArr[i].y);
-	//}
-	//ctx.stroke();
-	//ctx.beginPath();
-	//ctx.moveTo(pointArr[0].x, pointArr[0].y)
-	//ctx.lineTo(pointArr[4].x, pointArr[4].y)
-	//ctx.stroke();
-	//ctx.strokeStyle = "black";
-//}
-
 function SplashScreen(){
 
 	const splashCanvas = useRef(null);
@@ -64,6 +46,17 @@ function SplashScreen(){
 		const app = new PIXI.Application({ resizeTo: window, transparent: true });
 		splashCanvas.current.appendChild(app.view);
 
+		const vertexShader = `
+			precision mediump float;
+			attribute vec2 aVertexPosition;
+			attribute vec2 aTextureCoord;
+			varying vec2 vTextureCoord;
+
+			void main() {
+			    vTextureCoord = aTextureCoord;
+			    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+			}
+		`;
 		// len of radius pretending aspect ratio is 1
 		let loader_radius = 0.2; 
 
