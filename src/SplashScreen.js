@@ -57,6 +57,23 @@ function SplashScreen(){
 			    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
 			}
 		`;
+
+		const fragmentShader = `
+			precision mediump float;
+
+			varying vec2 vTextureCoord;
+			uniform sampler2D uSampler;
+
+			void main() {
+			    vec4 color = texture2D(uSampler, vTextureCoord);
+			    
+			    // Apply a step function to create a hard threshold
+			    float threshold = 0.5;
+			    float edge = step(threshold, vTextureCoord.x);
+			    
+			    gl_FragColor = vec4(vec3(edge), 1.0); // Black or White based on the step function
+			}
+		`;
 		// len of radius pretending aspect ratio is 1
 		let loader_radius = 0.2; 
 
